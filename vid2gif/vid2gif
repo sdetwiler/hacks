@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# https://ffmpeg.org/download.html
+FFMPEG=~/projects/ffmpeg
+
+# https://www.imagemagick.org/script/download.php#macosx
+# Requires XQuartz to be installed
+# https://www.xquartz.org
+export MAGICK_HOME="$HOME/projects/ImageMagick-7.0.5"
+export PATH="$MAGICK_HOME/bin:$PATH"
+export DYLD_LIBRARY_PATH="$MAGICK_HOME/lib/"
+
+videoFilename=$1
+baseFilename=${videoFilename%.*}
+videoSmallFilename=${baseFilename}_small.mp4
+gifFilename=$baseFilename.gif
+optimizedGifFilename=${baseFilename}_optimized.gif
+
+echo "videoFilename:        $videoFilename"
+echo "videoSmallFilename:     $videoSmallFilename"
+echo "gifFilename:          $gifFilename"
+echo "optimizedGifFilename: $optimizedGifFilename"
+
+
+
+echo "Resizing $videoFilename"
+$FFMPEG -i $videoFilename -vf scale=320:-1 $videoSmallFilename
+
+echo "Converting $videoSmallFilename"
+$FFMPEG -i $videoSmallFilename $gifFilename
+
+echo "Optimizing $gifFilename"
+#convert $gifFilename -verbose -coalesce -layers OptimizeFrame $optimizedGifFilename
+#convert +dither -matte -depth 8 -deconstruct -layers optimizePlus -colors 32 $gifFilename $optimizedGifFilename
+convert $gifFilename -dither none -deconstruct -layers optimize -matte -depth 8 \( -clone 0--1 -background none +append -quantize transparent  -colors 32  -unique-colors -write mpr:cmap +delete \) -map mpr:cmap $optimizedGifFilename
