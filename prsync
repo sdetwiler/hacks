@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+SOURCE_DIR="~/projects/wom-client"
+DEST_DIR="sysops@build06.las.n3twork.com:~/t"
+SSH_KEY="~/.ssh/id_rsa_build"
+NUM_PROCESSES=16
+NUM_FILES_PER_BATCH=200
+
+CMD="find $SOURCE_DIR -type f -print0 | xargs -P $NUM_PROCESSES -n $NUM_FILES_PER_BATCH  -J % -0 rsync -aP -e \"ssh -i $SSH_KEY\" % $DEST_DIR"
+echo $CMD
+eval $CMD
