@@ -24,13 +24,15 @@ echo "optimizedGifFilename: $optimizedGifFilename"
 
 
 echo "Resizing $videoFilename"
-$FFMPEG -i $videoFilename -vf scale=iw*.25:ih*.25 $videoSmallFilename
+$FFMPEG -i $videoFilename -vf scale=iw*.5:ih*.5 -an $videoSmallFilename
+# $FFMPEG -i $videoFilename -vf scale=320:570 $videoSmallFilename
+# $FFMPEG -i $videoFilename -vf scale=222:480 $videoSmallFilename
 
-echo "Converting $videoSmallFilename"
-$FFMPEG -i $videoSmallFilename $gifFilename
+# echo "Converting $videoSmallFilename"
+# $FFMPEG -i $videoSmallFilename $gifFilename
 
-echo "Optimizing $gifFilename"
+# echo "Optimizing $gifFilename"
 #convert $gifFilename -verbose -coalesce -layers OptimizeFrame $optimizedGifFilename
 #convert +dither -matte -depth 8 -deconstruct -layers optimizePlus -colors 32 $gifFilename $optimizedGifFilename
 
-convert $gifFilename -dither none -deconstruct -layers optimize -matte -depth 8 \( -clone 0--1 -background none +append -quantize transparent  -colors 32  -unique-colors -write mpr:cmap +delete \) -map mpr:cmap $optimizedGifFilename
+# convert $gifFilename -dither none -deconstruct -layers optimize -matte -depth 8 \( -clone 0--1 -background none +append -quantize transparent  -colors 32  -unique-colors -write mpr:cmap +delete \) -map mpr:cmap $optimizedGifFilename
