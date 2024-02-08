@@ -178,17 +178,8 @@ iclass_to_captyn_account = [
     {'iclass':'State', 'captyn':'State', 'transform':transform_state},
     {'iclass':'Zip', 'captyn':'Zip'},
     {'iclass':'Primary Phone Number', 'captyn':'Phone', 'transform':transform_phone_number},
-    # {'iclass':'Birthday', 'captyn':'Birthdate'},
-    # {'iclass':'Gender', 'captyn':'Gender'},
     {'iclass':'Allergies Health Concerns', 'captyn':'Health'},
-    # {'iclass':'Roll Sheet Comment', 'captyn':'Participant Note'},
-    # {'iclass':'Primary Guardian Name', 'captyn':'Emergency Name'},
-    # {'iclass':'Primary Phone Number', 'captyn':'Emergency Phone'},
     {'iclass':'Created Date', 'captyn':'Member Since'},
-    {'iclass':'Secondary Email 1', 'captyn':'Secondary Email 1'},
-    {'iclass':'Secondary Phone Number 1', 'captyn':'Secondary Phone 1', 'transform':transform_phone_number},
-    {'iclass':'Secondary Email 2', 'captyn':'Secondary Email 2'},
-    {'iclass':'Secondary Phone Number 2', 'captyn':'Secondary Phone 2', 'transform':transform_phone_number},
     ### CUSTOM COLUMNS
     {'iclass':'Hospital Clinic Preference', 'captyn':'Hospital Clinic Preference'},
     {'iclass':'Insurance Carrier Company', 'captyn':'Insurance Provider'},
@@ -198,29 +189,29 @@ iclass_to_captyn_account = [
 ]
 
 
+# Column mapping between iClassPro and Captyn for a Captyn Secondary Account.
+# Mappings can have an optional transform function to modify the iClassPro data before saving to Captyn.
+iclass_to_captyn_secondary_account = [
+    {'iclass':'Primary Email', 'captyn':'Email'},
+    {'iclass':'Secondary Guardian Name 1', 'captyn':'First Name', 'transform':transform_first_name},
+    {'iclass':'Secondary Guardian Name 2', 'captyn':'Last Name', 'transform':transform_last_name},
+    {'iclass':'Secondary Phone Number 1', 'captyn':'Phone', 'transform':transform_phone_number},
+    {'iclass':'Created Date', 'captyn':'Member Since'},
+    {'iclass':'Secondary Email 1', 'captyn':'Secondary Email 1'},
+]
+
+
 # Column mapping between iClassPro and Captyn for a Captyn Participant.
 # Mappings can have an optional transform function to modify the iClassPro data before saving to Captyn.
 iclass_to_captyn_participant = [
     {'iclass':'Primary Email', 'captyn':'Email'},
     {'iclass':'Student Name', 'captyn':'First Name', 'transform':transform_first_name},
     {'iclass':'Student Name', 'captyn':'Last Name', 'transform':transform_last_name},
-    # {'iclass':'Street 1', 'captyn':'Address 1'},
-    # {'iclass':'Street 2', 'captyn':'Address 2'},
-    # {'iclass':'City', 'captyn':'City'},
-    # {'iclass':'State', 'captyn':'State'},
-    # {'iclass':'Zip', 'captyn':'Zip'},
-    # {'iclass':'Primary Phone Number', 'captyn':'Phone'},
     {'iclass':'Birthday', 'captyn':'Birthdate'},
     {'iclass':'Gender', 'captyn':'Gender'},
-    # {'iclass':'Insurance Carrier Company', 'captyn':'Health'},
-    # {'iclass':'Roll Sheet Comment', 'captyn':'Participant Note'},
     {'iclass':'Primary Guardian Name', 'captyn':'Emergency Name', 'transform':transform_full_name},
     {'iclass':'Primary Phone Number', 'captyn':'Emergency Phone', 'transform':transform_phone_number},
     {'iclass':'Created Date', 'captyn':'Member Since'}
-    # {'iclass':'Secondary Email', 'captyn':'Secondary Email 1'},
-    # {'iclass':'Secondary Phone Number', 'captyn':'Secondary Phone 1'},
-    # {'iclass':'Secondary Email', 'captyn':'Secondary Email 2'},
-    # {'iclass':'Secondary Phone Number', 'captyn':'Secondary Phone 2'}
 ]
 
 
@@ -248,6 +239,26 @@ def create_captyn_account(iclass_row):
 
     captyn_row = {'Type':'Account'}
     for mapping in iclass_to_captyn_account:
+        if 'transform' in mapping:
+            v = mapping['transform'](iclass_row[mapping['iclass']])
+        else:
+            v = iclass_row[mapping['iclass']]
+
+        # Filter out iclass default empty string
+        if v != '--':
+            captyn_row[mapping['captyn']] = v
+
+    return captyn_row
+
+
+def create_captyn_secondary_account(iclass_row):
+    '''Returns a row containing a Captyn account to be used by a csv.DictWriter.
+    
+    iclass_row: A csv.DictReader row containing an iClassPro record with a Secondary Email 1.
+    '''
+
+    captyn_row = {'Type':'Account'}
+    for mapping in iclass_to_captyn_secondary_account:
         if 'transform' in mapping:
             v = mapping['transform'](iclass_row[mapping['iclass']])
         else:
@@ -307,6 +318,7 @@ def create_captyn_accounts_and_participants(iclass_export_filename, captyn_accou
     '''
     
     accounts_count = 0
+    secondary_accounts_count = 0
     participants_count = 0
     accounts = []
 
@@ -324,12 +336,26 @@ def create_captyn_accounts_and_participants(iclass_export_filename, captyn_accou
             accounts.append(email)
             accounts_count+=1
 
+        secondary_email = iclass_row['Secondary Email 1']
+        if secondary_email == '--':
+            secondary_email = ''
+        if len(secondary_email) > 0:
+            # print('Secondary Email 1 {} for {}'.format(secondary_email, email))
+            # print('  {}'.format(iclass_row['Secondary Guardian Name 1']))
+            # print('  {}'.format(iclass_row['Secondary Phone Number 1']))
+            if secondary_email not in accounts:
+                captyn_row = create_captyn_secondary_account(iclass_row)
+                captyn.writerow(captyn_row)
+                accounts.append(secondary_email)
+                secondary_accounts_count+=1
+
+
         captyn_row = create_captyn_participant(iclass_row)            
         captyn.writerow(captyn_row)
         participants_count+=1
 
     captyn_file.close()
-    print('Saved {}\nAccounts: {}\nParticipants: {}'.format(captyn_accounts_and_participants_filename, accounts_count, participants_count))
+    print('Saved {}\nAccounts: {}\nSecondary Accounts: {}\nParticipants: {}'.format(captyn_accounts_and_participants_filename, accounts_count, secondary_accounts_count, participants_count))
 
 
 
