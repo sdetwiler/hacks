@@ -151,7 +151,9 @@ captyn_accounts_and_participants_cols = [
     'Insurance Provider',
     'Insurance Policy Number',
     'Physician Name',
-    'Physician Phone'
+    'Physician Phone',
+    'Secondary For Account'
+
 ]
 
 
@@ -192,12 +194,12 @@ iclass_to_captyn_account = [
 # Column mapping between iClassPro and Captyn for a Captyn Secondary Account.
 # Mappings can have an optional transform function to modify the iClassPro data before saving to Captyn.
 iclass_to_captyn_secondary_account = [
-    {'iclass':'Primary Email', 'captyn':'Email'},
+    {'iclass':'Secondary Email 1', 'captyn':'Email'},
     {'iclass':'Secondary Guardian Name 1', 'captyn':'First Name', 'transform':transform_first_name},
-    {'iclass':'Secondary Guardian Name 2', 'captyn':'Last Name', 'transform':transform_last_name},
+    {'iclass':'Secondary Guardian Name 1', 'captyn':'Last Name', 'transform':transform_last_name},
     {'iclass':'Secondary Phone Number 1', 'captyn':'Phone', 'transform':transform_phone_number},
     {'iclass':'Created Date', 'captyn':'Member Since'},
-    {'iclass':'Secondary Email 1', 'captyn':'Secondary Email 1'},
+    {'iclass':'Primary Email', 'captyn':'Secondary For Account'},
 ]
 
 
