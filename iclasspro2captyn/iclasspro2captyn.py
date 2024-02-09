@@ -10,7 +10,7 @@ This tool converts account information from iClassPro to a CSV format that can b
 # Usage Notes
 
     1. Export all columns from iClassPro to a CSV file.
-    2. Edit the exported CSV and append numbers to the following columns names to make them unique:
+    2. Edit the exported CSV and append numbers to the following column names to make them unique:
         Secondary Guardian Name -> 1,2,3,4
         Secondary Phone Number -> 1,2,3
         Secondary Email -> 1,2
@@ -39,8 +39,13 @@ def transform_full_name(v):
     '''Format a full name to the format "First Last" from an iClassPro full name in the format "Last, First"'''
     
     tokens = v.split(',')
-    return ' '.join([tokens[-1]] + tokens[0:-1]).title()
+    return ' '.join([tokens[-1]] + tokens[0:-1]).strip().title()
 
+
+def transform_secondary_contact(v):
+    '''Format a full name to the format "To First Last" from an iClassPro full name in the format "Last, First"'''
+
+    return 'To ' + transform_full_name(v)
 
 def transform_phone_number(v):
     '''
@@ -147,12 +152,7 @@ captyn_accounts_and_participants_cols = [
     'Secondary Email 2',
     'Secondary Phone 2',
     ### CUSTOM COLUMNS
-    'Hospital Clinic Preference',
-    'Insurance Provider',
-    'Insurance Policy Number',
-    'Physician Name',
-    'Physician Phone',
-    'Secondary For Account'
+    'Secondary Contact'
 
 ]
 
@@ -182,12 +182,6 @@ iclass_to_captyn_account = [
     {'iclass':'Primary Phone Number', 'captyn':'Phone', 'transform':transform_phone_number},
     {'iclass':'Allergies Health Concerns', 'captyn':'Health'},
     {'iclass':'Created Date', 'captyn':'Member Since'},
-    ### CUSTOM COLUMNS
-    {'iclass':'Hospital Clinic Preference', 'captyn':'Hospital Clinic Preference'},
-    {'iclass':'Insurance Carrier Company', 'captyn':'Insurance Provider'},
-    {'iclass':'Policy Number', 'captyn':'Insurance Policy Number'},
-    {'iclass':'Physician Name', 'captyn':'Physician Name', 'transform':transform_full_name},
-    {'iclass':'Physician Phone', 'captyn':'Physician Phone', 'transform':transform_phone_number},
 ]
 
 
@@ -199,7 +193,7 @@ iclass_to_captyn_secondary_account = [
     {'iclass':'Secondary Guardian Name 1', 'captyn':'Last Name', 'transform':transform_last_name},
     {'iclass':'Secondary Phone Number 1', 'captyn':'Phone', 'transform':transform_phone_number},
     {'iclass':'Created Date', 'captyn':'Member Since'},
-    {'iclass':'Primary Email', 'captyn':'Secondary For Account'},
+    {'iclass':'Student Name', 'captyn':'Secondary Contact', 'transform':transform_secondary_contact},
 ]
 
 
@@ -233,6 +227,23 @@ iclass_event_to_captyn_offering = {
 }
 
 
+def populate_captyn_row(iclass_row, captyn_row, mappings):
+    for mapping in mappings:
+        if 'transform' in mapping:
+            v = mapping['transform'](iclass_row[mapping['iclass']])
+        else:
+            v = iclass_row[mapping['iclass']]
+
+        # Filter out newlines.
+        v = v.replace('\n', ' ')
+
+        # Filter out iclass default empty string.
+        if v != '--':
+            captyn_row[mapping['captyn']] = v
+
+    return captyn_row
+
+
 def create_captyn_account(iclass_row):
     '''Returns a row containing a Captyn account to be used by a csv.DictWriter.
     
@@ -240,17 +251,7 @@ def create_captyn_account(iclass_row):
     '''
 
     captyn_row = {'Type':'Account'}
-    for mapping in iclass_to_captyn_account:
-        if 'transform' in mapping:
-            v = mapping['transform'](iclass_row[mapping['iclass']])
-        else:
-            v = iclass_row[mapping['iclass']]
-
-        # Filter out iclass default empty string
-        if v != '--':
-            captyn_row[mapping['captyn']] = v
-
-    return captyn_row
+    return populate_captyn_row(iclass_row, captyn_row, iclass_to_captyn_account)
 
 
 def create_captyn_secondary_account(iclass_row):
@@ -260,17 +261,7 @@ def create_captyn_secondary_account(iclass_row):
     '''
 
     captyn_row = {'Type':'Account'}
-    for mapping in iclass_to_captyn_secondary_account:
-        if 'transform' in mapping:
-            v = mapping['transform'](iclass_row[mapping['iclass']])
-        else:
-            v = iclass_row[mapping['iclass']]
-
-        # Filter out iclass default empty string
-        if v != '--':
-            captyn_row[mapping['captyn']] = v
-
-    return captyn_row
+    return populate_captyn_row(iclass_row, captyn_row, iclass_to_captyn_secondary_account)
 
 
 def create_captyn_participant(iclass_row):
@@ -280,17 +271,7 @@ def create_captyn_participant(iclass_row):
     '''
 
     captyn_row = {'Type':'Participant'}
-    for mapping in iclass_to_captyn_participant:
-        if 'transform' in mapping:
-            v = mapping['transform'](iclass_row[mapping['iclass']])
-        else:
-            v = iclass_row[mapping['iclass']]
-
-        # Filter out iclass default empty string.
-        if v != '--':
-            captyn_row[mapping['captyn']] = v
-
-    return captyn_row
+    return populate_captyn_row(iclass_row, captyn_row, iclass_to_captyn_participant)
 
 
 def create_captyn_enrollment(iclass_row, event_id):
@@ -342,9 +323,6 @@ def create_captyn_accounts_and_participants(iclass_export_filename, captyn_accou
         if secondary_email == '--':
             secondary_email = ''
         if len(secondary_email) > 0:
-            # print('Secondary Email 1 {} for {}'.format(secondary_email, email))
-            # print('  {}'.format(iclass_row['Secondary Guardian Name 1']))
-            # print('  {}'.format(iclass_row['Secondary Phone Number 1']))
             if secondary_email not in accounts:
                 captyn_row = create_captyn_secondary_account(iclass_row)
                 captyn.writerow(captyn_row)
