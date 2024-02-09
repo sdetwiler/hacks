@@ -227,7 +227,13 @@ iclass_event_to_captyn_offering = {
 }
 
 
-def populate_captyn_row(iclass_row, captyn_row, mappings):
+def populate_captyn_row(captyn_row, iclass_row, mappings):
+    ''' Populates the captyn_row with values from the iclass_row using the provided mappings.
+
+    captyn_row: A csv.DictWriter row containing Captyn record.
+    iclass_row: A csv.DictReader row containing an iClassPro record.
+    mappings: A mapping dictionary that describes which iClassPro columns map to Captyn columns.
+    '''
     for mapping in mappings:
         if 'transform' in mapping:
             v = mapping['transform'](iclass_row[mapping['iclass']])
@@ -251,7 +257,7 @@ def create_captyn_account(iclass_row):
     '''
 
     captyn_row = {'Type':'Account'}
-    return populate_captyn_row(iclass_row, captyn_row, iclass_to_captyn_account)
+    return populate_captyn_row(captyn_row, iclass_row, iclass_to_captyn_account)
 
 
 def create_captyn_secondary_account(iclass_row):
@@ -261,7 +267,7 @@ def create_captyn_secondary_account(iclass_row):
     '''
 
     captyn_row = {'Type':'Account'}
-    return populate_captyn_row(iclass_row, captyn_row, iclass_to_captyn_secondary_account)
+    return populate_captyn_row(captyn_row, iclass_row, iclass_to_captyn_secondary_account)
 
 
 def create_captyn_participant(iclass_row):
@@ -271,7 +277,7 @@ def create_captyn_participant(iclass_row):
     '''
 
     captyn_row = {'Type':'Participant'}
-    return populate_captyn_row(iclass_row, captyn_row, iclass_to_captyn_participant)
+    return populate_captyn_row(captyn_row, iclass_row, iclass_to_captyn_participant)
 
 
 def create_captyn_enrollment(iclass_row, event_id):
