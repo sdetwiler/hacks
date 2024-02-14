@@ -216,7 +216,7 @@ iclass_to_captyn_participant = [
 # This must be modified to match the Team's unique naming scheme.
 iclass_event_to_captyn_offering = {
     '*Junior Team':{'name':'Mavericks Juniors', 'offering_id':'mavericks_juniors'},
-    'Pre Team':{'name':'Mini Marauders', 'offering_id':'mini_marauders'},
+    'Pre Team':{'name':'Mini Marauders', 'offering_id':'school_pre_team'},
     '*Junior Elite Team':{'name':'Mavericks Junior Elite', 'offering_id':'mavericks_junior_elite'},
     'Marauders':{'name':'Marauders', 'offering_id':'marauders'},
     'Mini Marauders':{'name':'Mini Marauders', 'offering_id':'mini_marauders'},
@@ -232,7 +232,7 @@ def populate_captyn_row(captyn_row, iclass_row, mappings):
 
     captyn_row: A csv.DictWriter row containing Captyn record.
     iclass_row: A csv.DictReader row containing an iClassPro record.
-    mappings: A mapping dictionary that describes which iClassPro columns map to Captyn columns.
+    mappings: A mapping list that describes which iClassPro columns map to Captyn columns.
     '''
     for mapping in mappings:
         if 'transform' in mapping:
