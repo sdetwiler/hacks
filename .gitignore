@@ -7,6 +7,4 @@ env
 */ImageMagick-7.0.7/*
 ffmpeg
 
-iclasspro2captyn/*.csv
-!iclasspro2captyn/captyn_accounts_and_participants_template.csv
-!iclasspro2captyn/captyn_enrollment_template.csv
+captyn/data/*

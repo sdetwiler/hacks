@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+import transform
 
 '''
 # iClassPro to Captyn Data Conversion
@@ -21,59 +22,6 @@ This tool converts account information from iClassPro to a CSV format that can b
     6. in the main() function, edit the filename to match your iClassPro CSV export
     7. Run and enjoy.
 '''
-
-
-def transform_first_name(v):
-    '''Extract the first name from an iClassPro full name in the format "Last, First"'''
-
-    return v.split(',')[-1].strip().title()
-
-
-def transform_last_name(v):
-    '''Extract the first name from an iClassPro full name in the format "Last, First"'''
-
-    return v.split(',')[0].strip().title()
-
-
-def transform_full_name(v):
-    '''Format a full name to the format "First Last" from an iClassPro full name in the format "Last, First"'''
-    
-    tokens = v.split(',')
-    return ' '.join([tokens[-1]] + tokens[0:-1]).strip().title()
-
-
-def transform_secondary_contact(v):
-    '''Format a full name to the format "To First Last" from an iClassPro full name in the format "Last, First"'''
-
-    return 'To ' + transform_full_name(v)
-
-def transform_phone_number(v):
-    '''
-    Sanitize various phone number formats to a common format of 123-456-7890
-    and retain any trailing string that might contain an extension or other information.
-    '''
-    
-    v = v.replace('-', '')
-    v = v.replace('(', '')
-    v = v.replace(')', '')
-    v = v.replace(' ', '')
-    if len(v) == 0:
-        return v
-    
-    # Remove country code escape prefix
-    if v[0] == '+':
-        v = v[1:]
-    # Remove leading US country code 1 if it exists
-    if v[0] == '1':
-        v = v[1:]
-    
-    return v[0:3] + '-' + v[3:6] + '-' + v[6:10] + v[10:]
-
-
-def transform_state(v):
-    '''Extract the two character state from an iClassPro state value in the format CA-US'''
-
-    return v[0:2]
 
 
 # All columns as exported from iClassPro. Note the required manual modifications to make all column names unique.
@@ -172,14 +120,14 @@ captyn_enrollment_cols = [
 # Mappings can have an optional transform function to modify the iClassPro data before saving to Captyn.
 iclass_to_captyn_account = [
     {'iclass':'Primary Email', 'captyn':'Email'},
-    {'iclass':'Primary Guardian Name', 'captyn':'First Name', 'transform':transform_first_name},
-    {'iclass':'Primary Guardian Name', 'captyn':'Last Name', 'transform':transform_last_name},
+    {'iclass':'Primary Guardian Name', 'captyn':'First Name', 'transform':transform.first_name},
+    {'iclass':'Primary Guardian Name', 'captyn':'Last Name', 'transform':transform.last_name},
     {'iclass':'Street 1', 'captyn':'Address 1'},
     {'iclass':'Street 2', 'captyn':'Address 2'},
     {'iclass':'City', 'captyn':'City'},
-    {'iclass':'State', 'captyn':'State', 'transform':transform_state},
+    {'iclass':'State', 'captyn':'State', 'transform':transform.state},
     {'iclass':'Zip', 'captyn':'Zip'},
-    {'iclass':'Primary Phone Number', 'captyn':'Phone', 'transform':transform_phone_number},
+    {'iclass':'Primary Phone Number', 'captyn':'Phone', 'transform':transform.phone_number},
     {'iclass':'Allergies Health Concerns', 'captyn':'Health'},
     {'iclass':'Created Date', 'captyn':'Member Since'},
 ]
@@ -189,11 +137,11 @@ iclass_to_captyn_account = [
 # Mappings can have an optional transform function to modify the iClassPro data before saving to Captyn.
 iclass_to_captyn_secondary_account = [
     {'iclass':'Secondary Email 1', 'captyn':'Email'},
-    {'iclass':'Secondary Guardian Name 1', 'captyn':'First Name', 'transform':transform_first_name},
-    {'iclass':'Secondary Guardian Name 1', 'captyn':'Last Name', 'transform':transform_last_name},
-    {'iclass':'Secondary Phone Number 1', 'captyn':'Phone', 'transform':transform_phone_number},
+    {'iclass':'Secondary Guardian Name 1', 'captyn':'First Name', 'transform':transform.first_name},
+    {'iclass':'Secondary Guardian Name 1', 'captyn':'Last Name', 'transform':transform.last_name},
+    {'iclass':'Secondary Phone Number 1', 'captyn':'Phone', 'transform':transform.phone_number},
     {'iclass':'Created Date', 'captyn':'Member Since'},
-    {'iclass':'Student Name', 'captyn':'Secondary Contact', 'transform':transform_secondary_contact},
+    {'iclass':'Student Name', 'captyn':'Secondary Contact', 'transform':transform.secondary_contact},
 ]
 
 
@@ -201,12 +149,12 @@ iclass_to_captyn_secondary_account = [
 # Mappings can have an optional transform function to modify the iClassPro data before saving to Captyn.
 iclass_to_captyn_participant = [
     {'iclass':'Primary Email', 'captyn':'Email'},
-    {'iclass':'Student Name', 'captyn':'First Name', 'transform':transform_first_name},
-    {'iclass':'Student Name', 'captyn':'Last Name', 'transform':transform_last_name},
+    {'iclass':'Student Name', 'captyn':'First Name', 'transform':transform.first_name},
+    {'iclass':'Student Name', 'captyn':'Last Name', 'transform':transform.last_name},
     {'iclass':'Birthday', 'captyn':'Birthdate'},
     {'iclass':'Gender', 'captyn':'Gender'},
-    {'iclass':'Primary Guardian Name', 'captyn':'Emergency Name', 'transform':transform_full_name},
-    {'iclass':'Primary Phone Number', 'captyn':'Emergency Phone', 'transform':transform_phone_number},
+    {'iclass':'Primary Guardian Name', 'captyn':'Emergency Name', 'transform':transform.full_name},
+    {'iclass':'Primary Phone Number', 'captyn':'Emergency Phone', 'transform':transform.phone_number},
     {'iclass':'Created Date', 'captyn':'Member Since'}
 ]
 
@@ -294,8 +242,8 @@ def create_captyn_enrollment(iclass_row, event_id):
     captyn_row = {
         'Offering ID': iclass_event_to_captyn_offering[event_id]['offering_id'],
         'Account': iclass_row['Primary Email'],
-        'Participant First Name':transform_first_name(iclass_row['Student Name']),
-        'Participant Last Name':transform_last_name(iclass_row['Student Name']),
+        'Participant First Name':transform.first_name(iclass_row['Student Name']),
+        'Participant Last Name':transform.last_name(iclass_row['Student Name']),
         'Status':'Enrolled'
     }
 
@@ -377,10 +325,10 @@ def create_captyn_enrollments(iclass_export_filename, captyn_enrollments_filenam
 
 
 def main():
-    iclass_export_filename = 'iclass_20240207_export.csv'
+    iclass_export_filename = 'data/iclass_20240207_export.csv'
 
-    captyn_accounts_and_participants_filename = 'captyn_accounts_and_participants.csv'
-    captyn_enrollments_filename = 'captyn_enrollments.csv'
+    captyn_accounts_and_participants_filename = 'data/captyn_accounts_and_participants.csv'
+    captyn_enrollments_filename = 'data/captyn_enrollments.csv'
 
     create_captyn_accounts_and_participants(iclass_export_filename, captyn_accounts_and_participants_filename)
     create_captyn_enrollments(iclass_export_filename, captyn_enrollments_filename)
