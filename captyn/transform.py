@@ -56,27 +56,32 @@ def state(v):
 
 def street_address_from_captyn_address(v):
     # Sample: 123 Fake St; Oakland CA 94610
-    return v.split(';')[0]
+    return v.split(';')[0].replace(',', '').strip()
 
 
 def city_from_captyn_address(v):
     # Sample: 123 Fake St; Oakland CA 94610
-    rest = v.split(';')[-1]
-    len_tail = len(' CA 94610')
-
-    return rest[0:-len_tail].strip()
+    last_line = v.split(';')[-1]
+    tokens = last_line.split(' ')
+    # drop the last two tokens, which are state and zip. Supports cities with multiple words.
+    return ' '.join(tokens[0:len(tokens)-2]).strip()
 
 
 def state_from_captyn_address(v):
     # Sample: 123 Fake St; Oakland CA 94610
+    # Sample: 123 Fake St; Oakland California 94610
+    
+    # HACK!
+    return 'CA'
     len_tail = len('CA 94610')
     return v[-len_tail:][0:2]
 
 
 def zipcode_from_captyn_address(v):
     # Sample: 123 Fake St; Oakland CA 94610
-    len_tail = len('94610')
-    return v[-len_tail:]
+    tokens = v.split(' ')
+    zip = tokens[-1]
+    return zip[0:5]
 
 
 def captyn_date_to_aau_date(v):
@@ -94,4 +99,6 @@ def captyn_date_to_aau_date(v):
 
 def captyn_gender_to_aau_gender(v):
     # "Female" -> "F"
+    if len(v) == 0:
+        return 'O'
     return v[0].upper()
