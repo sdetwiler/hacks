@@ -134,13 +134,13 @@ def create_aau_registrations(captyn_profiles_filename, captyn_membership_filenam
 
 def main():
     # The memberships stored in Captyn that should be added to AAU.
-    captyn_membership_filename = 'data/captyn_AAU_Memberships_Export-2024-04-25-1857.csv'
+    captyn_membership_filename = 'data/captyn_AAU_Memberships_Export-2024-05-07-0240.csv'
     
     # Full export of all Captyn profiles, used to obtain additional, required fields for AAU.
-    captyn_profiles_filename = 'data/captyn_Profiles-Export-2024-04-25-1141.csv'
+    captyn_profiles_filename = 'data/captyn_Profiles-Export-2024-05-06-1935.csv'
     
     # The output filename for the CSV that can be loaded into AAU
-    aau_registration_filename = 'data/aau_add_registration.csv'
+    aau_registration_filename = 'data/20240506_aau_add_registration.csv'
 
     create_aau_registrations(captyn_profiles_filename, captyn_membership_filename, aau_registration_filename)
 

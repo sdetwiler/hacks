@@ -25,7 +25,10 @@ This tool takes the CSV export from a Captyn Membership and formats it to be imp
 This is used to register all swimmers for AAU Swimming that have the Captyn AAU Membership 
 
 1. Export the Membership list for the AAU Swimming membership that was created in Captyn
+2. Export the latest Profiles list from Captyn
+3. Edit `captyn2aau.py` to refer to the two downloaded files.
+4. Run `captyn2aau.py`
 2. Go to the AAU [Import Memberships Screen](https://play.aausports.org/joinaau/importathletememberships.aspx).
 3. Enter your AAU Club Code (Oaklantis is W3D794)
-4. Provide the exported CSV file
+4. Provide the CSV file generated from `captyn2aau.py`
 5. Review the summary from the import. If swimmers already exist, that's ok. Sometimes AAU doesn't perfectly match existing swimmers from the Captyn export, so make sure you don't have duplicates.
