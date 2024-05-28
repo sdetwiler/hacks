@@ -32,3 +32,5 @@ This is used to register all swimmers for AAU Swimming that have the Captyn AAU 
 3. Enter your AAU Club Code (Oaklantis is W3D794)
 4. Provide the CSV file generated from `captyn2aau.py`
 5. Review the summary from the import. If swimmers already exist, that's ok. Sometimes AAU doesn't perfectly match existing swimmers from the Captyn export, so make sure you don't have duplicates.
+
+Note: Gender is optional in Captyn, but required for AAU. Swimmers in Captyn with no specified gender are exported as "O" for "other". When importing to AAU, this will generate an error. You must manually correct this in the exported CSV to be "M" or "F", or record the gender in Captyn and then re-export.
