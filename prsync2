@@ -1,0 +1,15 @@
+SOURCE_DIR="/mnt/d/Music"
+DEST_DIR="steve@10.0.1.133:~/drop"
+SSH_KEY="$HOME/.ssh/id_rsa"
+NUM_PROCESSES=16
+NUM_FILES_PER_BATCH=200
+
+# Run from inside SOURCE_DIR so paths are relative (./Artist/Album/track.mp3);
+# rsync -R then recreates that folder structure under DEST_DIR.
+cd "$SOURCE_DIR" || exit 1
+
+# GNU xargs (Linux/WSL) has no -J, so hand each batch to a small shell
+# and splice the files in with "$@" before the destination.
+find . -type f -print0 |
+  xargs -0 -P "$NUM_PROCESSES" -n "$NUM_FILES_PER_BATCH" \
+    sh -c 'rsync -aPR -e "ssh -i $0" "$@" "'"$DEST_DIR"'"' "$SSH_KEY"
